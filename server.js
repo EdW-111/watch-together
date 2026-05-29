@@ -26,7 +26,12 @@ wss.on('connection', (ws) => {
 
     switch (msg.type) {
       case 'create-room': {
-        const roomId = generateRoomId();
+        const roomId = msg.roomId || generateRoomId();
+        // clean up stale room if exists
+        if (rooms.has(roomId)) {
+          const old = rooms.get(roomId);
+          if (old.guest?.readyState === 1) old.guest.send(JSON.stringify({ type: 'peer-left' }));
+        }
         rooms.set(roomId, { host: ws, guest: null });
         ws.roomId = roomId;
         ws.role = 'host';

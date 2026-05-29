@@ -3,131 +3,225 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>一起看</title>
+  <title>一起看 ♥</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=Inter:wght@300;400;500&display=swap');
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: #0f0f0f;
-      color: #e0e0e0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0d0a0f;
+      color: #e8d5d5;
+      font-family: 'Inter', sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
+    /* Starfield */
+    #stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: #fff;
+      animation: twinkle var(--d) ease-in-out infinite alternate;
+      opacity: 0;
+    }
+    @keyframes twinkle {
+      from { opacity: 0; transform: scale(0.8); }
+      to   { opacity: var(--o); transform: scale(1.2); }
+    }
+
+    /* Floating hearts */
+    .heart {
+      position: fixed;
+      bottom: -60px;
+      font-size: var(--s);
+      animation: floatUp var(--d) ease-in forwards;
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(0) rotate(0deg); opacity: 0.15; }
+      100% { transform: translateY(-110vh) rotate(20deg); opacity: 0; }
+    }
+
+    /* Lobby */
     #lobby {
+      position: relative;
+      z-index: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       flex: 1;
-      gap: 32px;
-      padding: 24px;
+      gap: 48px;
+      padding: 32px 24px;
     }
 
-    .logo {
-      font-size: 2.4rem;
-      font-weight: 700;
-      letter-spacing: -1px;
+    .title-wrap {
+      text-align: center;
     }
-    .logo span { color: #e05c5c; }
+    .title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 2.8rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #f5a0b0 0%, #e06080 50%, #c040a0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 4px;
+    }
+    .subtitle {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: #7a5a6a;
+      letter-spacing: 2px;
+    }
+
+    .cards {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
 
     .card {
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 16px;
-      padding: 32px;
-      width: 100%;
-      max-width: 400px;
+      background: linear-gradient(145deg, #1a0f18, #150d14);
+      border: 1px solid #3a1f30;
+      border-radius: 24px;
+      padding: 40px 36px;
+      width: 220px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-    }
-
-    .card h2 { font-size: 1.1rem; color: #888; font-weight: 500; }
-
-    button {
-      padding: 12px 24px;
-      border-radius: 10px;
-      border: none;
-      font-size: 1rem;
-      font-weight: 600;
+      align-items: center;
+      gap: 20px;
       cursor: pointer;
-      transition: opacity 0.15s;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+      overflow: hidden;
     }
-    button:hover { opacity: 0.85; }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(220,80,120,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: #c05070;
+      box-shadow: 0 16px 48px rgba(200, 60, 100, 0.2);
+    }
+    .card:active { transform: translateY(-2px); }
+    .card.disabled { opacity: 0.4; pointer-events: none; }
 
-    .btn-primary { background: #e05c5c; color: #fff; }
-    .btn-secondary { background: #2a2a2a; color: #e0e0e0; }
-
-    input {
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 1px solid #333;
-      background: #111;
-      color: #e0e0e0;
-      font-size: 1.1rem;
-      letter-spacing: 4px;
+    .card-icon { font-size: 3rem; line-height: 1; }
+    .card-label {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.15rem;
+      color: #f0c0d0;
       text-align: center;
-      text-transform: uppercase;
-      outline: none;
-      width: 100%;
+      letter-spacing: 1px;
     }
-    input:focus { border-color: #e05c5c; }
-
-    .room-code {
-      font-size: 2.8rem;
-      font-weight: 800;
-      letter-spacing: 10px;
-      color: #e05c5c;
+    .card-desc {
+      font-size: 0.75rem;
+      color: #6a4555;
       text-align: center;
+      line-height: 1.5;
     }
 
-    .hint { font-size: 0.85rem; color: #666; text-align: center; }
-
-    #status-bar {
+    /* Status pill */
+    #status-pill {
       display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(30,12,22,0.9);
+      border: 1px solid #3a1f30;
+      border-radius: 100px;
+      padding: 8px 18px;
+      font-size: 0.82rem;
+      color: #c08090;
+      backdrop-filter: blur(8px);
+    }
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #444;
+      flex-shrink: 0;
+    }
+    .dot.pink  { background: #e06080; box-shadow: 0 0 6px #e06080; }
+    .dot.amber { background: #f0a040; box-shadow: 0 0 6px #f0a040; }
+
+    .error-msg {
+      font-size: 0.8rem;
+      color: #e06060;
+      text-align: center;
+      min-height: 18px;
+    }
+
+    /* Room view */
+    #room-wrap {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      position: relative;
+      z-index: 1;
+    }
+
+    #top-bar {
+      display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 12px 20px;
-      background: #1a1a1a;
-      border-bottom: 1px solid #2a2a2a;
-      font-size: 0.9rem;
+      background: rgba(13,10,15,0.85);
+      border-bottom: 1px solid #2a1220;
+      backdrop-filter: blur(10px);
     }
-
-    .dot {
-      display: inline-block;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #555;
-      margin-right: 8px;
+    .bar-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1rem;
+      background: linear-gradient(135deg, #f5a0b0, #c040a0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
-    .dot.green { background: #4caf50; }
-    .dot.yellow { background: #ffc107; }
+    .bar-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: #8a6070;
+    }
 
     #view {
-      display: none;
       flex: 1;
-      background: #000;
+      background: #050305;
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-
     #remote-video {
       width: 100%;
       height: 100%;
       object-fit: contain;
     }
-
     #overlay-msg {
       position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #555;
-      font-size: 1.1rem;
+      text-align: center;
+      color: #3a2030;
+      font-size: 1rem;
+      font-family: 'Noto Serif SC', serif;
+      letter-spacing: 2px;
+      pointer-events: none;
     }
 
     #share-controls {
@@ -135,59 +229,94 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      padding: 16px;
-      background: #1a1a1a;
-      border-top: 1px solid #2a2a2a;
+      padding: 14px;
+      background: rgba(13,10,15,0.9);
+      border-top: 1px solid #2a1220;
+      backdrop-filter: blur(10px);
     }
 
-    .error-msg {
-      color: #e05c5c;
-      font-size: 0.85rem;
-      text-align: center;
-      min-height: 20px;
+    button {
+      padding: 10px 24px;
+      border-radius: 100px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s;
+      letter-spacing: 0.5px;
     }
+    button:hover { opacity: 0.85; transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #e05070, #a02060);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(200,50,90,0.3);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: #8a6070;
+      border: 1px solid #3a1f30;
+    }
+    .btn-ghost:hover { color: #e08090; border-color: #6a3050; }
   </style>
 </head>
 <body>
 
-<div id="status-bar">
-  <div><span class="dot" id="conn-dot"></span><span id="conn-label">未连接</span></div>
-  <button class="btn-secondary" id="btn-leave" style="padding:6px 14px;font-size:0.85rem">离开</button>
-</div>
+<div id="stars"></div>
 
+<!-- Lobby -->
 <div id="lobby">
-  <div class="logo">一起<span>看</span></div>
+  <div class="title-wrap">
+    <div class="title">一起看</div>
+    <div class="subtitle">与你，在同一个画面里</div>
+  </div>
 
-  <div class="card" id="card-host">
-    <h2>我来分享屏幕</h2>
-    <button class="btn-primary" id="btn-create">创建房间</button>
-    <div id="room-display" style="display:none">
-      <div class="room-code" id="room-code-text"></div>
-      <div class="hint">把这个房间码发给对方</div>
+  <div id="status-pill">
+    <div class="dot amber" id="pill-dot"></div>
+    <span id="pill-label">连接中…</span>
+  </div>
+
+  <div class="cards">
+    <div class="card" id="card-host">
+      <div class="card-icon">🎬</div>
+      <div class="card-label">我来共享</div>
+      <div class="card-desc">把你的屏幕<br>带到 TA 身边</div>
     </div>
-    <div class="error-msg" id="host-error"></div>
+    <div class="card" id="card-guest">
+      <div class="card-icon">🌙</div>
+      <div class="card-label">我来观看</div>
+      <div class="card-desc">等待 TA 的画面<br>出现在这里</div>
+    </div>
   </div>
 
-  <div class="card" id="card-guest">
-    <h2>我来观看</h2>
-    <input id="room-input" maxlength="6" placeholder="输入房间码" />
-    <button class="btn-secondary" id="btn-join">加入房间</button>
-    <div class="error-msg" id="guest-error"></div>
+  <div class="error-msg" id="error-msg"></div>
+</div>
+
+<!-- Room view -->
+<div id="room-wrap">
+  <div id="top-bar">
+    <div class="bar-title">一起看 ♥</div>
+    <div class="bar-status">
+      <div class="dot" id="bar-dot"></div>
+      <span id="bar-label">连接中</span>
+    </div>
+    <button class="btn-ghost" id="btn-leave" style="padding:6px 14px;font-size:0.8rem">离开</button>
   </div>
-</div>
-
-<div id="view">
-  <video id="remote-video" autoplay playsinline></video>
-  <div id="overlay-msg">等待主机开始共享屏幕…</div>
-</div>
-
-<div id="share-controls">
-  <button class="btn-primary" id="btn-share">开始共享屏幕</button>
-  <button class="btn-secondary" id="btn-stop-share" style="display:none">停止共享</button>
+  <div id="view">
+    <video id="remote-video" autoplay playsinline></video>
+    <div id="overlay-msg">等待画面传来…</div>
+  </div>
+  <div id="share-controls">
+    <button class="btn-primary" id="btn-share">✨ 开始共享屏幕</button>
+    <button class="btn-ghost" id="btn-stop-share" style="display:none">停止共享</button>
+  </div>
 </div>
 
 <script>
-  const STUN_SERVERS = {
+  const FIXED_ROOM = 'OURLOVE';
+
+  const STUN = {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
@@ -198,71 +327,72 @@
     ? `wss://${location.host}`
     : `ws://${location.host}`;
 
-  let ws, pc, localStream;
-  let role = null; // 'host' | 'guest'
+  let ws, pc, localStream, role;
 
-  // DOM refs
-  const lobby = document.getElementById('lobby');
-  const statusBar = document.getElementById('status-bar');
-  const view = document.getElementById('view');
-  const shareControls = document.getElementById('share-controls');
-  const connDot = document.getElementById('conn-dot');
-  const connLabel = document.getElementById('conn-label');
-  const remoteVideo = document.getElementById('remote-video');
-  const overlayMsg = document.getElementById('overlay-msg');
-  const roomCodeText = document.getElementById('room-code-text');
-  const roomDisplay = document.getElementById('room-display');
-  const roomInput = document.getElementById('room-input');
-  const hostError = document.getElementById('host-error');
-  const guestError = document.getElementById('guest-error');
+  // Stars
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2 + 0.5;
+    s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(Math.random()*4+2).toFixed(1)}s;--o:${(Math.random()*0.6+0.1).toFixed(2)};animation-delay:${(Math.random()*5).toFixed(1)}s`;
+    starsEl.appendChild(s);
+  }
 
-  document.getElementById('btn-create').addEventListener('click', () => {
+  // Floating hearts
+  function spawnHeart() {
+    const h = document.createElement('div');
+    h.className = 'heart';
+    h.textContent = ['♥','♡','❤','💕','✨'][Math.floor(Math.random()*5)];
+    const size = Math.random() * 1.2 + 0.6;
+    const dur = Math.random() * 8 + 6;
+    h.style.cssText = `left:${Math.random()*100}%;--s:${size}rem;--d:${dur}s`;
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), dur * 1000);
+  }
+  setInterval(spawnHeart, 2200);
+  spawnHeart();
+
+  // Cards
+  document.getElementById('card-host').addEventListener('click', () => {
     role = 'host';
-    connectWS(() => send({ type: 'create-room' }));
+    disableCards();
+    showPill('连接中…', 'amber');
+    connectWS(() => send({ type: 'create-room', roomId: FIXED_ROOM }));
   });
 
-  document.getElementById('btn-join').addEventListener('click', () => {
-    const code = roomInput.value.trim().toUpperCase();
-    if (code.length < 4) { guestError.textContent = '请输入有效的房间码'; return; }
+  document.getElementById('card-guest').addEventListener('click', () => {
     role = 'guest';
-    connectWS(() => send({ type: 'join-room', roomId: code }));
+    disableCards();
+    showPill('正在寻找 TA…', 'amber');
+    connectWS(() => send({ type: 'join-room', roomId: FIXED_ROOM }));
   });
 
   document.getElementById('btn-share').addEventListener('click', startShare);
   document.getElementById('btn-stop-share').addEventListener('click', stopShare);
   document.getElementById('btn-leave').addEventListener('click', leavePage);
 
-  roomInput.addEventListener('input', () => {
-    roomInput.value = roomInput.value.toUpperCase();
-    guestError.textContent = '';
-  });
-
   function connectWS(onOpen) {
     ws = new WebSocket(WS_URL);
     ws.onopen = onOpen;
     ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
-    ws.onclose = () => setStatus('disconnected');
-    ws.onerror = () => setStatus('disconnected');
+    ws.onclose = () => setBarStatus('disconnected');
+    ws.onerror = () => showError('连接失败，请刷新重试');
   }
 
   function send(msg) {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(msg));
-    }
+    if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
   }
 
   async function handleMessage(msg) {
     switch (msg.type) {
       case 'room-created':
-        roomCodeText.textContent = msg.roomId;
-        roomDisplay.style.display = 'block';
-        document.getElementById('btn-create').disabled = true;
+        showPill('等待 TA 加入…', 'amber');
         break;
 
       case 'guest-joined':
-        // now enter room view and set up WebRTC
-        enterRoom('host');
-        setStatus('connected');
+        enterRoom();
+        setBarStatus('connected');
         await createPC();
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
@@ -270,8 +400,8 @@
         break;
 
       case 'joined':
-        enterRoom('guest');
-        setStatus('connected');
+        enterRoom();
+        setBarStatus('connected');
         await createPC();
         break;
 
@@ -287,121 +417,114 @@
         break;
 
       case 'ice-candidate':
-        if (msg.candidate) {
-          await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
-        }
+        if (msg.candidate) await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
         break;
 
       case 'peer-left':
-        setStatus('peer-left');
+        setBarStatus('peer-left');
         break;
 
       case 'error':
-        if (role === 'host') hostError.textContent = msg.message;
-        else guestError.textContent = msg.message;
+        showError(msg.message);
+        enableCards();
         break;
     }
   }
 
   async function createPC() {
-    pc = new RTCPeerConnection(STUN_SERVERS);
-
-    pc.onicecandidate = (e) => {
-      send({ type: 'ice-candidate', candidate: e.candidate });
-    };
-
+    pc = new RTCPeerConnection(STUN);
+    pc.onicecandidate = (e) => send({ type: 'ice-candidate', candidate: e.candidate });
     pc.ontrack = (e) => {
-      remoteVideo.srcObject = e.streams[0];
-      overlayMsg.style.display = 'none';
+      document.getElementById('remote-video').srcObject = e.streams[0];
+      document.getElementById('overlay-msg').style.display = 'none';
     };
-
     pc.onconnectionstatechange = () => {
-      if (pc.connectionState === 'connected') setStatus('connected');
-      if (['disconnected', 'failed', 'closed'].includes(pc.connectionState)) setStatus('disconnected');
+      if (pc.connectionState === 'connected') setBarStatus('connected');
+      if (['disconnected','failed','closed'].includes(pc.connectionState)) setBarStatus('disconnected');
     };
-
   }
 
   async function startShare() {
     try {
       localStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          frameRate: { ideal: 60 },
-          cursor: 'always',
-        },
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          sampleRate: 48000,
-        }
+        video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 60 }, cursor: 'always' },
+        audio: { echoCancellation: false, noiseSuppression: false, sampleRate: 48000 }
       });
     } catch {
-      hostError.textContent = '无法获取屏幕权限';
       return;
     }
 
-    localStream.getTracks().forEach(track => {
-      pc.addTrack(track, localStream);
-    });
+    localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
 
-    // renegotiate
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     send({ type: 'offer', sdp: pc.localDescription });
 
-    // push bitrate to 8 Mbps after connection stabilizes
     setTimeout(async () => {
       for (const sender of pc.getSenders()) {
         if (sender.track?.kind !== 'video') continue;
-        const params = sender.getParameters();
-        if (!params.encodings?.length) params.encodings = [{}];
-        params.encodings[0].maxBitrate = 8_000_000;
-        params.encodings[0].maxFramerate = 60;
-        await sender.setParameters(params);
+        const p = sender.getParameters();
+        if (!p.encodings?.length) p.encodings = [{}];
+        p.encodings[0].maxBitrate = 8_000_000;
+        p.encodings[0].maxFramerate = 60;
+        await sender.setParameters(p);
       }
     }, 1000);
 
     document.getElementById('btn-share').style.display = 'none';
     document.getElementById('btn-stop-share').style.display = 'inline-block';
-
     localStream.getVideoTracks()[0].onended = stopShare;
   }
 
   function stopShare() {
-    if (localStream) {
-      localStream.getTracks().forEach(t => t.stop());
-      localStream = null;
-    }
+    localStream?.getTracks().forEach(t => t.stop());
+    localStream = null;
     document.getElementById('btn-share').style.display = 'inline-block';
     document.getElementById('btn-stop-share').style.display = 'none';
   }
 
-  function enterRoom(r) {
-    lobby.style.display = 'none';
-    statusBar.style.display = 'flex';
-    view.style.display = 'flex';
-    if (r === 'host') shareControls.style.display = 'flex';
+  function enterRoom() {
+    document.getElementById('lobby').style.display = 'none';
+    document.getElementById('room-wrap').style.display = 'flex';
+    document.getElementById('room-wrap').style.flexDirection = 'column';
+    document.getElementById('room-wrap').style.flex = '1';
+    if (role === 'host') document.getElementById('share-controls').style.display = 'flex';
   }
 
-  function setStatus(state) {
-    const states = {
-      waiting:      { dot: 'yellow', label: '等待对方加入…' },
-      connected:    { dot: 'green',  label: '已连接' },
-      disconnected: { dot: '',       label: '连接断开' },
-      'peer-left':  { dot: '',       label: '对方已离开' },
-    };
-    const s = states[state] || states.disconnected;
-    connDot.className = 'dot ' + s.dot;
-    connLabel.textContent = s.label;
+  function setBarStatus(state) {
+    const dot = document.getElementById('bar-dot');
+    const label = document.getElementById('bar-label');
+    if (state === 'connected')    { dot.className = 'dot pink'; label.textContent = '已连接 ♥'; }
+    if (state === 'disconnected') { dot.className = 'dot'; label.textContent = '连接断开'; }
+    if (state === 'peer-left')    { dot.className = 'dot'; label.textContent = 'TA 已离开'; }
+  }
+
+  function showPill(text, color) {
+    const pill = document.getElementById('status-pill');
+    pill.style.display = 'flex';
+    document.getElementById('pill-dot').className = 'dot ' + color;
+    document.getElementById('pill-label').textContent = text;
+  }
+
+  function showError(msg) {
+    document.getElementById('error-msg').textContent = msg;
+    document.getElementById('status-pill').style.display = 'none';
+  }
+
+  function disableCards() {
+    document.getElementById('card-host').classList.add('disabled');
+    document.getElementById('card-guest').classList.add('disabled');
+  }
+  function enableCards() {
+    document.getElementById('card-host').classList.remove('disabled');
+    document.getElementById('card-guest').classList.remove('disabled');
   }
 
   function leavePage() {
     send({ type: 'leave' });
     stopShare();
-    if (pc) { pc.close(); pc = null; }
-    if (ws) { ws.close(); ws = null; }
+    pc?.close(); pc = null;
+    ws?.close(); ws = null;
     location.reload();
   }
 </script>
