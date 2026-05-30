@@ -310,6 +310,74 @@
       transform: translateY(-2px);
     }
 
+    /* Emoji wheel */
+    #emoji-wheel-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #btn-emoji-wheel {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #2a1520;
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      line-height: 1;
+      color: #c090a0;
+    }
+    #btn-emoji-wheel:hover {
+      background: rgba(200,60,100,0.15);
+      border-color: #8a3050;
+      transform: scale(1.08);
+    }
+    #emoji-wheel {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 14px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px;
+      height: 180px;
+      z-index: 80;
+    }
+    #emoji-wheel.open { display: block; }
+    /* dark disc background */
+    #emoji-wheel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(18,8,16,0.95);
+      border: 1px solid #4a2035;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+    .emoji-item {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      font-size: 1.45rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s, background 0.15s;
+      /* centered on the disc, then shifted by JS */
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+    }
+    .emoji-item:hover {
+      background: rgba(220,80,120,0.2);
+      transform: translate(var(--tx), var(--ty)) scale(1.25);
+    }
+
     /* Floating reaction — right to left at ~30% from top */
     .float-reaction {
       position: fixed;
@@ -569,11 +637,18 @@
   </div>
 
   <div id="reaction-bar">
-    <button class="reaction-btn" data-r="😂 笑死我了">😂 笑死我了</button>
-    <button class="reaction-btn" data-r="🤡 太贱了">🤡 太贱了</button>
-    <button class="reaction-btn" data-r="🤢 好恶心">🤢 好恶心</button>
-    <button class="reaction-btn" data-r="👀 这是啥">👀 这是啥</button>
-    <button class="reaction-btn" data-r="🥺 好可怜">🥺 好可怜</button>
+    <button class="reaction-btn" data-r="哈哈哈哈哈哈">哈哈哈哈哈哈</button>
+    <button class="reaction-btn" data-r="太贱了">太贱了</button>
+    <button class="reaction-btn" data-r="好恶心">好恶心</button>
+    <button class="reaction-btn" data-r="好惨">好惨</button>
+    <button class="reaction-btn" data-r="好好听/(ㄒoㄒ)/~~">好好听/(ㄒoㄒ)/~~</button>
+    <button class="reaction-btn" data-r="这是人啊？？？">这是人啊？？？</button>
+    <div id="emoji-wheel-wrap">
+      <button id="btn-emoji-wheel" title="发表情">🎭</button>
+      <div id="emoji-wheel">
+        <!-- items injected by JS -->
+      </div>
+    </div>
     <button class="pause-btn" id="btn-pause-req">⏸ 等我一下</button>
     <button class="pause-btn" id="btn-resume-req">▶️ 可以继续了</button>
   </div>
@@ -692,6 +767,40 @@
   document.getElementById('btn-share').addEventListener('click', startShare);
   document.getElementById('btn-stop-share').addEventListener('click', stopShare);
   document.getElementById('btn-leave').addEventListener('click', leavePage);
+
+  // Emoji wheel
+  const WHEEL_EMOJIS = ['😅😅😅','😑😑😑','😬😬😬','😵‍💫😵‍💫😵‍💫','😦😦😦','🤡🤡🤡','⚠️⚠️⚠️','❓❓❓'];
+  const wheel = document.getElementById('emoji-wheel');
+  const radius = 62;
+
+  WHEEL_EMOJIS.forEach((emoji, i) => {
+    const angle = (i / WHEEL_EMOJIS.length) * 2 * Math.PI - Math.PI / 2;
+    const tx = Math.round(Math.cos(angle) * radius);
+    const ty = Math.round(Math.sin(angle) * radius);
+    const btn = document.createElement('button');
+    btn.className = 'emoji-item';
+    // show just one emoji on the wheel button, send the triple
+    const single = [...emoji][0];
+    btn.textContent = single;
+    btn.title = emoji;
+    btn.style.setProperty('--tx', `calc(-50% + ${tx}px)`);
+    btn.style.setProperty('--ty', `calc(-50% + ${ty}px)`);
+    btn.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`;
+    btn.addEventListener('click', () => {
+      send({ type: 'reaction', text: emoji });
+      spawnFloatingReaction(emoji, true);
+      closeWheel();
+    });
+    wheel.appendChild(btn);
+  });
+
+  document.getElementById('btn-emoji-wheel').addEventListener('click', (e) => {
+    e.stopPropagation();
+    wheel.classList.toggle('open');
+  });
+  function closeWheel() { wheel.classList.remove('open'); }
+  document.addEventListener('click', closeWheel);
+  wheel.addEventListener('click', e => e.stopPropagation());
 
   // Reactions
   document.querySelectorAll('.reaction-btn').forEach(btn => {
