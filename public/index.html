@@ -259,11 +259,153 @@
       border: 1px solid #3a1f30;
     }
     .btn-ghost:hover { color: #e08090; border-color: #6a3050; }
+
+    /* Quiz modal */
+    #quiz-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5,2,8,0.85);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #quiz-overlay.show { display: flex; }
+
+    .quiz-box {
+      background: linear-gradient(145deg, #1a0f18, #150d14);
+      border: 1px solid #3a1f30;
+      border-radius: 24px;
+      padding: 40px 36px;
+      max-width: 380px;
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+      position: relative;
+    }
+    .quiz-step {
+      font-size: 0.72rem;
+      color: #5a3a4a;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .quiz-q {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.15rem;
+      color: #f0c0d0;
+      line-height: 1.6;
+    }
+    .quiz-input {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #3a1f30;
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #e8d5d5;
+      font-size: 1rem;
+      text-align: center;
+      outline: none;
+      font-family: 'Noto Serif SC', serif;
+      transition: border-color 0.2s;
+    }
+    .quiz-input:focus { border-color: #c05070; }
+    .quiz-input.shake {
+      animation: shake 0.4s ease;
+      border-color: #e06060;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-8px); }
+      40%      { transform: translateX(8px); }
+      60%      { transform: translateX(-6px); }
+      80%      { transform: translateX(6px); }
+    }
+    .quiz-error {
+      font-size: 0.8rem;
+      color: #e06060;
+      min-height: 18px;
+    }
+
+    /* Success popup */
+    #success-popup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5,2,8,0.75);
+      backdrop-filter: blur(12px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    #success-popup.show { display: flex; }
+    .success-box {
+      background: linear-gradient(145deg, #1a0f18, #150d14);
+      border: 1px solid #4a2035;
+      border-radius: 28px;
+      padding: 48px 40px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.7); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .success-hearts {
+      font-size: 2.4rem;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { transform: scale(1); }
+      50%      { transform: scale(1.15); }
+    }
+    .success-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.4rem;
+      background: linear-gradient(135deg, #f5a0b0, #c040a0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.5;
+    }
+    .success-sub {
+      font-size: 0.82rem;
+      color: #6a4555;
+      letter-spacing: 1px;
+    }
   </style>
 </head>
 <body>
 
 <div id="stars"></div>
+
+<!-- Quiz modal -->
+<div id="quiz-overlay">
+  <div class="quiz-box">
+    <div class="quiz-step" id="quiz-step">问题 1 / 2</div>
+    <div class="quiz-q" id="quiz-q">谁是世界上最最最好看的女人？</div>
+    <input class="quiz-input" id="quiz-input" placeholder="在这里写下你的答案…" autocomplete="off" />
+    <div class="quiz-error" id="quiz-error"></div>
+    <button class="btn-primary" id="quiz-submit">确认 ♥</button>
+  </div>
+</div>
+
+<!-- Success popup -->
+<div id="success-popup">
+  <div class="success-box">
+    <div class="success-hearts">💕</div>
+    <div class="success-title">请根根小小<br>一起享受这一刻</div>
+    <div class="success-sub">你们在一起，哪里都是电影院</div>
+    <button class="btn-primary" id="success-ok" style="margin-top:8px">开始吧 ✨</button>
+  </div>
+</div>
 
 <!-- Lobby -->
 <div id="lobby">
@@ -353,7 +495,13 @@
   setInterval(spawnHeart, 2200);
   spawnHeart();
 
-  // Cards
+  // Quiz
+  const QUESTIONS = [
+    { q: '谁是世界上最最最好看的女人？', a: '小小宝宝' },
+    { q: '谁是世界第一大厨？',           a: '根根厨师长' },
+  ];
+  let quizStep = 0;
+
   document.getElementById('card-host').addEventListener('click', () => {
     role = 'host';
     disableCards();
@@ -362,10 +510,54 @@
   });
 
   document.getElementById('card-guest').addEventListener('click', () => {
-    role = 'guest';
-    disableCards();
-    showPill('正在寻找 TA…', 'amber');
-    connectWS(() => send({ type: 'join-room', roomId: FIXED_ROOM }));
+    quizStep = 0;
+    showQuiz(0);
+  });
+
+  function showQuiz(step) {
+    document.getElementById('quiz-overlay').classList.add('show');
+    document.getElementById('quiz-step').textContent = `问题 ${step + 1} / ${QUESTIONS.length}`;
+    document.getElementById('quiz-q').textContent = QUESTIONS[step].q;
+    document.getElementById('quiz-input').value = '';
+    document.getElementById('quiz-error').textContent = '';
+    document.getElementById('quiz-input').focus();
+  }
+
+  document.getElementById('quiz-submit').addEventListener('click', checkQuiz);
+  document.getElementById('quiz-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkQuiz();
+  });
+
+  function checkQuiz() {
+    const input = document.getElementById('quiz-input');
+    const answer = input.value.trim();
+    const correct = QUESTIONS[quizStep].a;
+
+    if (answer !== correct) {
+      input.classList.remove('shake');
+      void input.offsetWidth; // reflow
+      input.classList.add('shake');
+      document.getElementById('quiz-error').textContent = '答案不对哦，再想想 ♥';
+      setTimeout(() => input.classList.remove('shake'), 400);
+      return;
+    }
+
+    quizStep++;
+    if (quizStep < QUESTIONS.length) {
+      showQuiz(quizStep);
+    } else {
+      // all correct — join
+      document.getElementById('quiz-overlay').classList.remove('show');
+      role = 'guest';
+      disableCards();
+      showPill('正在寻找 TA…', 'amber');
+      connectWS(() => send({ type: 'join-room', roomId: FIXED_ROOM }));
+    }
+  }
+
+  // Success popup
+  document.getElementById('success-ok').addEventListener('click', () => {
+    document.getElementById('success-popup').classList.remove('show');
   });
 
   document.getElementById('btn-share').addEventListener('click', startShare);
@@ -393,6 +585,7 @@
       case 'guest-joined':
         enterRoom();
         setBarStatus('connected');
+        showSuccessPopup();
         await createPC();
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
@@ -402,6 +595,7 @@
       case 'joined':
         enterRoom();
         setBarStatus('connected');
+        showSuccessPopup();
         await createPC();
         break;
 
@@ -518,6 +712,10 @@
   function enableCards() {
     document.getElementById('card-host').classList.remove('disabled');
     document.getElementById('card-guest').classList.remove('disabled');
+  }
+
+  function showSuccessPopup() {
+    document.getElementById('success-popup').classList.add('show');
   }
 
   function leavePage() {

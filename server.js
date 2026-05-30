@@ -43,7 +43,7 @@ wss.on('connection', (ws) => {
         const roomId = msg.roomId?.toUpperCase();
         const room = rooms.get(roomId);
         if (!room) {
-          ws.send(JSON.stringify({ type: 'error', message: '房间不存在' }));
+          ws.send(JSON.stringify({ type: 'error', message: 'TA还没准备好～' }));
           return;
         }
         if (room.guest) {
