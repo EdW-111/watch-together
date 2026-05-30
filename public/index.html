@@ -510,8 +510,10 @@
   });
 
   document.getElementById('card-guest').addEventListener('click', () => {
-    quizStep = 0;
-    showQuiz(0);
+    role = 'guest';
+    disableCards();
+    showPill('正在寻找 TA…', 'amber');
+    connectWS(() => send({ type: 'join-room', roomId: FIXED_ROOM }));
   });
 
   function showQuiz(step) {
@@ -546,12 +548,9 @@
     if (quizStep < QUESTIONS.length) {
       showQuiz(quizStep);
     } else {
-      // all correct — join
+      // all correct — reveal the main UI
       document.getElementById('quiz-overlay').style.display = 'none';
-      role = 'guest';
-      disableCards();
-      showPill('正在寻找 TA…', 'amber');
-      connectWS(() => send({ type: 'join-room', roomId: FIXED_ROOM }));
+      document.getElementById('lobby').style.visibility = 'visible';
     }
   }
 
@@ -717,6 +716,11 @@
   function showSuccessPopup() {
     document.getElementById('success-popup').style.display = 'flex';
   }
+
+  // Auto-show quiz on page load, hide lobby until passed
+  document.getElementById('lobby').style.visibility = 'hidden';
+  quizStep = 0;
+  showQuiz(0);
 
   function leavePage() {
     send({ type: 'leave' });
