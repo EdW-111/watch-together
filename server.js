@@ -59,10 +59,13 @@ wss.on('connection', (ws) => {
         break;
       }
 
-      // WebRTC signaling relay
+      // WebRTC signaling relay + peer messages
       case 'offer':
       case 'answer':
-      case 'ice-candidate': {
+      case 'ice-candidate':
+      case 'reaction':
+      case 'pause-request':
+      case 'resume-request': {
         const room = rooms.get(ws.roomId);
         if (!room) return;
         const target = ws.role === 'host' ? room.guest : room.host;

@@ -260,6 +260,120 @@
     }
     .btn-ghost:hover { color: #e08090; border-color: #6a3050; }
 
+    /* Reaction bar */
+    #reaction-bar {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: rgba(13,10,15,0.9);
+      border-top: 1px solid #2a1220;
+      backdrop-filter: blur(10px);
+      flex-wrap: wrap;
+    }
+    .reaction-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #2a1520;
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      color: #c090a0;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+    }
+    .reaction-btn:hover {
+      background: rgba(200,60,100,0.15);
+      border-color: #8a3050;
+      color: #f0a0b8;
+      transform: translateY(-2px) scale(1.05);
+    }
+    .reaction-btn:active { transform: scale(0.96); }
+
+    .pause-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid #2a1520;
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.82rem;
+      color: #a0b0c0;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-left: 8px;
+    }
+    .pause-btn:hover {
+      background: rgba(80,120,200,0.15);
+      border-color: #405080;
+      color: #90b8e0;
+      transform: translateY(-2px);
+    }
+
+    /* Floating reaction — right to left at ~30% from top */
+    .float-reaction {
+      position: fixed;
+      top: 30%;
+      right: -260px;
+      font-size: 0.95rem;
+      background: rgba(20,10,18,0.88);
+      border: 1px solid #5a2540;
+      border-radius: 100px;
+      padding: 9px 20px;
+      color: #f5c0d0;
+      pointer-events: none;
+      z-index: 50;
+      white-space: nowrap;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(200,60,100,0.2);
+      animation: sweepLeft var(--dur) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+    @keyframes sweepLeft {
+      0%   { transform: translateX(0);        opacity: 0; }
+      8%   { opacity: 1; }
+      80%  { opacity: 1; }
+      100% { transform: translateX(calc(-100vw - 280px)); opacity: 0; }
+    }
+
+    /* Toast notification */
+    #toast {
+      position: fixed;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(20,10,18,0.95);
+      border: 1px solid #4a2035;
+      border-radius: 16px;
+      padding: 16px 24px;
+      text-align: center;
+      z-index: 60;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      backdrop-filter: blur(12px);
+      min-width: 220px;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+    .toast-text {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 0.95rem;
+      color: #f0c0d0;
+      margin-bottom: 12px;
+    }
+    .toast-ok {
+      background: linear-gradient(135deg, #e05070, #a02060);
+      border: none;
+      border-radius: 100px;
+      padding: 7px 20px;
+      color: #fff;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
     /* Quiz modal */
     #quiz-overlay {
       display: none;
@@ -453,6 +567,22 @@
     <button class="btn-primary" id="btn-share">✨ 开始共享屏幕</button>
     <button class="btn-ghost" id="btn-stop-share" style="display:none">停止共享</button>
   </div>
+
+  <div id="reaction-bar">
+    <button class="reaction-btn" data-r="😂 笑死我了">😂 笑死我了</button>
+    <button class="reaction-btn" data-r="🤡 太贱了">🤡 太贱了</button>
+    <button class="reaction-btn" data-r="🤢 好恶心">🤢 好恶心</button>
+    <button class="reaction-btn" data-r="👀 这是啥">👀 这是啥</button>
+    <button class="reaction-btn" data-r="🥺 好可怜">🥺 好可怜</button>
+    <button class="pause-btn" id="btn-pause-req">⏸ 等我一下</button>
+    <button class="pause-btn" id="btn-resume-req">▶️ 可以继续了</button>
+  </div>
+</div>
+
+<!-- Toast for pause/resume requests -->
+<div id="toast" style="display:none">
+  <div class="toast-text" id="toast-text"></div>
+  <button class="toast-ok" id="toast-ok">好的 ♥</button>
 </div>
 
 <script>
@@ -563,6 +693,28 @@
   document.getElementById('btn-stop-share').addEventListener('click', stopShare);
   document.getElementById('btn-leave').addEventListener('click', leavePage);
 
+  // Reactions
+  document.querySelectorAll('.reaction-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const r = btn.dataset.r;
+      send({ type: 'reaction', text: r });
+      spawnFloatingReaction(r, true); // also show for sender (dimmed)
+    });
+  });
+
+  // Pause / resume requests
+  document.getElementById('btn-pause-req').addEventListener('click', () => {
+    send({ type: 'pause-request' });
+    showToastSelf('已发送暂停请求 ⏸');
+  });
+  document.getElementById('btn-resume-req').addEventListener('click', () => {
+    send({ type: 'resume-request' });
+    showToastSelf('已发送继续请求 ▶️');
+  });
+
+  let toastTimer;
+  document.getElementById('toast-ok').addEventListener('click', hideToast);
+
   function connectWS(onOpen) {
     ws = new WebSocket(WS_URL);
     ws.onopen = onOpen;
@@ -611,6 +763,18 @@
 
       case 'ice-candidate':
         if (msg.candidate) await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
+        break;
+
+      case 'reaction':
+        spawnFloatingReaction(msg.text, false);
+        break;
+
+      case 'pause-request':
+        showToast('TA 想暂停一下 ⏸', '稍等 TA 一秒');
+        break;
+
+      case 'resume-request':
+        showToast('TA 准备好了 ▶️', '继续一起看吧');
         break;
 
       case 'peer-left':
@@ -682,6 +846,41 @@
     document.getElementById('room-wrap').style.flexDirection = 'column';
     document.getElementById('room-wrap').style.flex = '1';
     if (role === 'host') document.getElementById('share-controls').style.display = 'flex';
+    document.getElementById('reaction-bar').style.display = 'flex';
+  }
+
+  function spawnFloatingReaction(text, isSelf) {
+    const el = document.createElement('div');
+    el.className = 'float-reaction';
+    el.textContent = isSelf ? `你: ${text}` : `TA: ${text}`;
+    // slight vertical variation around the 30% mark
+    const topOffset = 28 + Math.random() * 6;
+    const dur = (3.2 + Math.random() * 1.2).toFixed(2);
+    el.style.top = topOffset + '%';
+    el.style.setProperty('--dur', dur + 's');
+    if (isSelf) el.style.opacity = '0.4';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), parseFloat(dur) * 1000 + 100);
+  }
+
+  function showToast(title, sub) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-text').innerHTML = `<strong>${title}</strong><br><span style="font-size:0.8rem;color:#8a6070">${sub}</span>`;
+    t.style.display = 'block';
+    requestAnimationFrame(() => t.classList.add('show'));
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 8000);
+  }
+
+  function showToastSelf(msg) {
+    showToast(msg, '对方已收到通知');
+    toastTimer = setTimeout(hideToast, 3000);
+  }
+
+  function hideToast() {
+    const t = document.getElementById('toast');
+    t.classList.remove('show');
+    setTimeout(() => { t.style.display = 'none'; }, 300);
   }
 
   function setBarStatus(state) {
