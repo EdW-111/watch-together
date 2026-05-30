@@ -387,7 +387,7 @@
 <div id="stars"></div>
 
 <!-- Quiz modal -->
-<div id="quiz-overlay">
+<div id="quiz-overlay" style="display:none">
   <div class="quiz-box">
     <div class="quiz-step" id="quiz-step">问题 1 / 2</div>
     <div class="quiz-q" id="quiz-q">谁是世界上最最最好看的女人？</div>
@@ -398,7 +398,7 @@
 </div>
 
 <!-- Success popup -->
-<div id="success-popup">
+<div id="success-popup" style="display:none">
   <div class="success-box">
     <div class="success-hearts">💕</div>
     <div class="success-title">请根根小小<br>一起享受这一刻</div>
@@ -515,7 +515,7 @@
   });
 
   function showQuiz(step) {
-    document.getElementById('quiz-overlay').classList.add('show');
+    document.getElementById('quiz-overlay').style.display = 'flex';
     document.getElementById('quiz-step').textContent = `问题 ${step + 1} / ${QUESTIONS.length}`;
     document.getElementById('quiz-q').textContent = QUESTIONS[step].q;
     document.getElementById('quiz-input').value = '';
@@ -547,7 +547,7 @@
       showQuiz(quizStep);
     } else {
       // all correct — join
-      document.getElementById('quiz-overlay').classList.remove('show');
+      document.getElementById('quiz-overlay').style.display = 'none';
       role = 'guest';
       disableCards();
       showPill('正在寻找 TA…', 'amber');
@@ -557,7 +557,7 @@
 
   // Success popup
   document.getElementById('success-ok').addEventListener('click', () => {
-    document.getElementById('success-popup').classList.remove('show');
+    document.getElementById('success-popup').style.display = 'none';
   });
 
   document.getElementById('btn-share').addEventListener('click', startShare);
@@ -715,7 +715,7 @@
   }
 
   function showSuccessPopup() {
-    document.getElementById('success-popup').classList.add('show');
+    document.getElementById('success-popup').style.display = 'flex';
   }
 
   function leavePage() {
